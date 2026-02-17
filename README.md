@@ -10,7 +10,7 @@ A computational pipeline for screening Metal–Organic Frameworks (MOFs) for **a
 
 ---
 
-## ✨ Features
+## Features
 
 - **Pure NH₃ adsorption** — Single-component GCMC at 1 bar / 298 K for benchmarking
 - **3-component air removal** — NH₃/H₂O/N₂ mixture with Vacuum Swing Adsorption (VSA) working capacity
@@ -21,7 +21,7 @@ A computational pipeline for screening Metal–Organic Frameworks (MOFs) for **a
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 GCMC/
@@ -44,7 +44,7 @@ GCMC/
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### 1. Prerequisites
 
@@ -160,7 +160,7 @@ CIF File
 
 ---
 
-## 📊 Output Format
+## Output Format
 
 Results are saved as JSON. Example for `pure` mode:
 
@@ -185,13 +185,13 @@ For `air_removal` mode:
 
 ---
 
-## 🧪 Validation Dataset
+##  Validation Dataset
 
 The `raw_nh3_core/` directory contains ~1000 MOF CIF files with experimentally-derived NH₃ uptake values at 298 K / 1 bar. Use `validate_nh3_uptake.py` to benchmark simulation accuracy against this dataset.
 
 ---
 
-## 📖 Citation
+## Citation
 
 If you use this pipeline, please cite the reference paper:
 
@@ -206,7 +206,7 @@ If you use this pipeline, please cite the reference paper:
 
 ---
 
-## 🤝 Acknowledgements
+## Acknowledgements
 
 - **[RASPA2](https://github.com/iRASPA/RASPA2)** — GCMC simulation engine  
 - **[MOFDiff](https://github.com/microsoft/MOFDiff)** — Original CO₂ GCMC pipeline (adapted here for NH₃)  

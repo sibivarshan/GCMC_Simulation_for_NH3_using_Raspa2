@@ -1,0 +1,62 @@
+To switch your simulation from ** (Carbon Dioxide)** to ** (Ammonia)**, you need to modify three key components of the GCMC pipeline: the **Force Field**, the **Partial Charges**, and the **Simulation Conditions**.
+
+Ammonia is significantly different from  because it is highly polar and forms strong hydrogen bonds. The standard protocols used for non-polar gases often fail for ammonia unless specific adjustments are made.
+
+### 1. Update the Force Field (TraPPE-EH)
+
+You cannot use the Garcia-Sanchez force field mentioned in the paper (which is specific to ). The industry standard for Ammonia is the **TraPPE** force field.
+
+* **For  (Old):** Garcia-Sanchez / TraPPE (rigid 3-site model).
+* **For  (New):** Use **TraPPE-EH (Explicit Hydrogen)** or a 5-site model.
+* **Why:**  is a pyramid shape, not a straight line like . You need a force field that places interaction sites on the Nitrogen and Hydrogens to capture its geometry and hydrogen bonding.
+* **RASPA2 Setting:** Look for `Ammonia` or `NH3_TraPPE` in the `molecule_definition` files in RASPA. If it's not there, you will need to define the 4-site or 5-site model manually in the `.def` file.
+
+
+
+### 2. Recalculate Partial Charges (Critical)
+
+In  simulations, Lennard-Jones (Van der Waals) forces dominate. In  simulations, **electrostatics dominate** because ammonia is a dipole.
+
+* **The Problem:** The "egulp" method used in the paper (likely Qeq or similar fast charge equilibration) might be too inaccurate for ammonia.
+* **The Fix:** If possible, calculate charges using **DFT (Density Functional Theory)** with methods like **DDEC** or **REACH**.
+* **If you must use classical methods:** Ensure your `egulp` or `charge_equilibration` settings are strictly converged, as small errors in charge will lead to massive errors in ammonia uptake.
+
+### 3. Adjust Simulation Conditions
+
+ is often simulated for flue gas (high pressure/concentration), whereas  is often simulated for toxicity removal (low concentration) or storage (medium pressure).
+
+| Parameter |  (Paper Protocol) |  (Recommended) |
+| --- | --- | --- |
+| **Temperature** | 298 K (Adsorption) | **298 K** (Standard) |
+| **Adsorption P** | 0.15 bar ( partial pressure) | **1.0 bar** (Storage) or **0.001 bar** (Toxicity) |
+| **Desorption T** | 363 K | **373 K - 473 K** (Ammonia binds stronger) |
+| **Desorption P** | 0.1 bar | **Vacuum (< 0.01 bar)** |
+
+### 4. Step-by-Step Implementation in RASPA
+
+If you are following the paper's workflow, here is exactly what you change in your input file:
+
+1. **Molecule Definition:**
+```text
+Component 0 MoleculeName             Ammonia
+Component 0 MoleculeDefinition       TraPPE    // Ensure definitions exist in library
+
+```
+
+
+2. **Interaction Parameters:**
+* Keep **Lorentz-Berthelot** mixing rules (standard).
+* Ensure `CutOffVDW` is at least **12.0 Å** (Ammonia interactions are long-range).
+
+
+3. **Moves:**
+* Increase `SwapProbability` (insert/delete) because it is harder to insert polar molecules into tight pores than non-polar .
+
+
+
+### Summary Checklist
+
+* [ ] **Switch Force Field:** Change  (Garcia-Sanchez)   (TraPPE-EH).
+* [ ] **Refine Charges:**  is polar; generic MOF charges may fail. Use high-accuracy charges if possible.
+* [ ] **Check Pressure:** Define if you are doing **Storage** (1 bar) or **Capture** (ppm levels).
+* [ ] **Run Cycles:** You may need *more* equilibration cycles () because polar molecules take longer to find their minimum energy state.

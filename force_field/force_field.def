@@ -1,0 +1,7 @@
+# Force field definition for NH3/H2O/N2 GCMC simulations
+# This file tells RASPA how many interaction types there are
+# The actual parameters are in force_field_mixing_rules.def and pseudo_atoms.def
+# number of rules
+0
+# number of overwritten rules
+0

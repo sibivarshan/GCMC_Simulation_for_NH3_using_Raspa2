@@ -1,0 +1,36 @@
+# critical constants: Temperature [T], Pressure [Pa], Acentric factor [-]
+647.1
+22064000.0
+0.3443
+# Number Of atoms
+4
+# Number of groups
+1
+# Rigid
+rigid
+# Number of atoms in group
+4
+# Atomic positions: type, x, y, z
+0 O_w        0.0         0.0         0.0
+1 H_w        0.7572      0.5864      0.0
+2 H_w       -0.7572      0.5864      0.0
+3 M_w        0.0         0.1546      0.0
+# Number of bonds
+2
+# Bond stretch: type, i, j, type, parameters
+0 0 1 RIGID_BOND
+1 0 2 RIGID_BOND
+# Number of bends
+1
+# Bend: type, i, j, k, type, parameters
+0 1 0 2 RIGID_BEND
+# Number of torsions
+0
+# Number of improper torsions
+0
+# Number of out-of-plane distances
+0
+# Number of IntraVDW
+0
+# Number of IntraCoulomb
+0

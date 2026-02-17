@@ -1,0 +1,40 @@
+# critical constants: Temperature [T], Pressure [Pa], Acentric factor [-]
+405.4
+11353000.0
+0.256
+# Number Of atoms
+5
+# Number of groups
+1
+# Rigid
+rigid
+# Number of atoms in group
+5
+# Atomic positions: type, x, y, z
+0 N_nh3      0.0         0.0         0.0
+1 H_nh3      0.4714      0.8165      0.3351
+2 H_nh3     -0.9428      0.0         0.3351
+3 H_nh3      0.4714     -0.8165      0.3351
+4 com_nh3    0.0         0.0         0.0
+# Number of bonds
+3
+# Bond stretch: type, i, j, type, parameters
+0 0 1 RIGID_BOND
+1 0 2 RIGID_BOND
+2 0 3 RIGID_BOND
+# Number of bends
+3
+# Bend: type, i, j, k, type, parameters
+0 1 0 2 RIGID_BEND
+1 1 0 3 RIGID_BEND
+2 2 0 3 RIGID_BEND
+# Number of torsions
+0
+# Number of improper torsions
+0
+# Number of out-of-plane distances
+0
+# Number of IntraVDW
+0
+# Number of IntraCoulomb
+0

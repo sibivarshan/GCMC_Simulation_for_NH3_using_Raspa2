@@ -1,0 +1,10 @@
+#number of pseudo atoms
+7
+# type   print?  as   chem  oxidation mass      charge  polarization  B-factor  radii  connectivity  anisotropic anisotropy-type  tinker-type
+N_nh3    yes     N    N     0         14.0067   0.0     0.0           1.0       1.0    0             0           relative          0
+H_nh3    yes     H    H     0         1.00794   0.41    0.0           1.0       1.0    0             0           relative          0
+com_nh3  no      u    u     0         0.0      -1.23    0.0           1.0       1.0    0             0           relative          0
+O_w      yes     O    O     0         15.9994   0.0     0.0           1.0       1.0    0             0           relative          0
+H_w      yes     H    H     0         1.00794   0.5564  0.0           1.0       1.0    0             0           relative          0
+M_w      no      u    u     0         0.0      -1.1128  0.0           1.0       1.0    0             0           relative          0
+N_n2     yes     N    N     0         14.0067  -0.482   0.0           1.0       1.0    0             0           relative          0

@@ -1,0 +1,16 @@
+# general rule for shifted vs truncated
+shifted
+# general rule for tail corrections
+no
+# number of defined interactions
+7
+# type     epsilon/kB [K]   sigma [Angstrom]   source
+N_nh3      185.0            3.42               TraPPE-NH3
+H_nh3      0.0              0.0                TraPPE-NH3
+com_nh3    0.0              0.0                TraPPE-NH3
+O_w        93.2             3.1589             TIP4P/2005
+H_w        0.0              0.0                TIP4P/2005
+M_w        0.0              0.0                TIP4P/2005
+N_n2       36.0             3.31               TraPPE-N2
+# general mixing rule for Lennard-Jones
+Lorentz-Berthelot

@@ -1,0 +1,38 @@
+# Nitrogen (N2) - TraPPE model
+# Potoff, J.J. & Siepmann, J.I., AIChE J. 47, 1676-1682 (2001)
+# 3-site model: 2 N atoms (LJ + charge) + 1 center-of-mass (charge only)
+# N-N bond length: 1.10 Angstrom
+# N charge: -0.482 e each -> COM charge: +0.964 e (neutrality)
+# critical constants: Temperature [T], Pressure [Pa], Acentric factor [-]
+126.19
+3390000.0
+0.039
+# Number Of atoms
+3
+# Number of groups
+1
+# Rigid
+rigid
+# Number of atoms in group
+3
+# Atomic positions: type, x, y, z
+0 N_n2       0.0    0.0    0.55
+1 N_n2       0.0    0.0   -0.55
+2 com_n2     0.0    0.0    0.0
+# Number of bonds
+2
+# Bond stretch: type, i, j, type, parameters
+0 0 2 RIGID_BOND
+1 1 2 RIGID_BOND
+# Number of bends
+0
+# Number of torsions
+0
+# Number of improper torsions
+0
+# Number of out-of-plane distances
+0
+# Number of IntraVDW
+0
+# Number of IntraCoulomb
+0

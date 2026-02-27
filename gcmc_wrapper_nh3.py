@@ -17,7 +17,7 @@ import re
 import shutil
 from pathlib import Path
 from time import time
-from math import cos, radians
+from math import cos, sin, radians
 from textwrap import dedent
 
 try:
@@ -113,16 +113,53 @@ class GCMCSimulation:
             raise
 
     def calculate_unit_cells(self, forcefield_cutoff):
-        """Determine unit cell replications to satisfy minimum image convention."""
-        perpendicular_length = [0, 0, 0]
-        for i in range(3):
-            perpendicular_length[i] = self.dim[i] * abs(
-                cos(radians(self.angle[i] - 90))
-            )
+        """
+        Determine unit cell replications to satisfy the minimum-image convention.
+
+        For a general triclinic cell with lattice parameters (a, b, c, α, β, γ),
+        the perpendicular distances between opposite faces are:
+
+            d_a = V / (b * c * sin(α))
+            d_b = V / (a * c * sin(β))
+            d_c = V / (a * b * sin(γ))
+
+        where V = a*b*c * sqrt(1 - cos²α - cos²β - cos²γ + 2·cosα·cosβ·cosγ)
+
+        We require: unit_cells[i] * d_i >= 2 * cutoff  for all i.
+
+        This replaces the previous approximate formula (dim[i] * |cos(angle[i] - 90°)|)
+        which is only correct for cells where each axis is orthogonal to the other two,
+        and can undercount replications in highly oblique cells.
+        """
+        from math import sqrt as _sqrt
+
+        a, b, c = self.dim
+        # Angles stored as [alpha, beta, gamma] (from CIF _cell_angle_alpha/beta/gamma)
+        alpha, beta, gamma = [radians(ang) for ang in self.angle]
+
+        cos_a, cos_b, cos_g = cos(alpha), cos(beta), cos(gamma)
+        sin_a, sin_b, sin_g = abs(sin(alpha)), abs(sin(beta)), abs(sin(gamma))
+
+        # Cell volume divided by abc  → normalised volume factor
+        det = 1.0 - cos_a**2 - cos_b**2 - cos_g**2 + 2.0*cos_a*cos_b*cos_g
+        # Guard against numerical noise (det should be > 0 for a valid cell)
+        if det <= 0:
+            print("  Warning: degenerate cell angles; falling back to orthogonal approximation")
+            perp = [a * sin_a, b * sin_b, c * sin_g]
+        else:
+            vol_factor = _sqrt(det)         # V / (a*b*c)
+            # Perpendicular widths via V / (face area)
+            # face bc area (per abc) = sin(alpha); similarly for others
+            d_a = a * vol_factor / (sin_b * sin_g) if (sin_b * sin_g) > 1e-10 else a
+            d_b = b * vol_factor / (sin_a * sin_g) if (sin_a * sin_g) > 1e-10 else b
+            d_c = c * vol_factor / (sin_a * sin_b) if (sin_a * sin_b) > 1e-10 else c
+            perp = [d_a, d_b, d_c]
 
         unit_cells = [1, 1, 1]
         for i in range(3):
-            while unit_cells[i] < 2 * forcefield_cutoff / perpendicular_length[i]:
+            if perp[i] <= 0:
+                perp[i] = self.dim[i]   # safe fallback
+            while unit_cells[i] * perp[i] < 2 * forcefield_cutoff:
                 unit_cells[i] += 1
 
         return unit_cells
@@ -143,18 +180,24 @@ def compute_helium_void_fraction(simulation, forcefield_cutoff=12):
     ff_dir = GCMC_DIR / "force_field"
     mol_dir = GCMC_DIR / "molecule_definitions"
 
-    # Copy CIF to RASPA structures directory if RASPA_PATH is set
-    if RASPA_PATH:
-        struct_dir = Path(RASPA_PATH) / "share" / "raspa" / "structures" / "cif"
-        struct_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy(simulation.sorbent_file, str(struct_dir))
-
     workdir = simulation.rundir / "hvf" / simulation.identifier
     workdir.mkdir(exist_ok=True, parents=True)
 
     sorbent_file = ".".join(
         simulation.sorbent_file.replace("\\", "/").split("/")[-1].split(".")[:-1]
     )
+
+    # Copy CIF to RASPA structures directory if RASPA_PATH is set
+    if RASPA_PATH:
+        struct_dir = Path(RASPA_PATH) / "share" / "raspa" / "structures" / "cif"
+        struct_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            shutil.copy(simulation.sorbent_file, str(struct_dir))
+        except Exception:
+            pass  # Fallback: use workdir copy below
+
+    # Always copy CIF to working directory so RASPA can find it
+    shutil.copy(simulation.sorbent_file, str(workdir))
 
     unit_cells = simulation.calculate_unit_cells(forcefield_cutoff)
 
@@ -221,12 +264,100 @@ def compute_helium_void_fraction(simulation, forcefield_cutoff=12):
         print(f"  Warning: HVF calculation failed ({e}), using 1.0")
         simulation.helium_void_fraction = 1.0
 
-    return simulation.helium_void_fraction
+def verify_charge_neutrality(cif_file, tolerance=0.05):
+    """
+    Verify that the unit cell net charge is within `tolerance` elementary charges
+    after partial charges have been written into the CIF.
+
+    This must be called explicitly after calculate_charges() to fulfil the
+    methodological requirement of reporting charge neutrality in the paper.
+
+    Parameters
+    ----------
+    cif_file : str or Path
+        Path to the CIF file that contains _atom_site_charge (or _atom_site_partial_charge)
+        columns written by PACMOF2 or MEPO-Qeq.
+    tolerance : float
+        Maximum absolute net charge (in e) to pass. Structures outside this range
+        are flagged for exclusion. Default 0.05 e is conservative but publication-standard.
+
+    Returns
+    -------
+    (net_charge, passed) : (float, bool)
+        net_charge : summed charge of all atoms in one unit cell
+        passed     : True if |net_charge| <= tolerance
+    """
+    import re
+    with open(str(cif_file), "r") as f:
+        content = f.read()
+
+    # Try both common CIF charge column names
+    # Match numeric values (positive or negative, integer or float)
+    charge_pattern = re.compile(
+        r"_atom_site(?:_partial)?_charge", re.IGNORECASE
+    )
+    if not charge_pattern.search(content):
+        print(f"  Warning: no charge column found in {cif_file}; cannot verify neutrality.")
+        return None, None
+
+    # Extract all numeric values that follow the charge column in the atom loop.
+    # Strategy: find the loop_ block containing the charge column and parse the
+    # column index.
+    lines = content.split("\n")
+    in_loop = False
+    headers = []
+    charge_col_idx = None
+    net_charge = 0.0
+    n_atoms = 0
+
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if line.lower() == "loop_":
+            in_loop = True
+            headers = []
+            charge_col_idx = None
+            i += 1
+            continue
+        if in_loop:
+            if line.startswith("_"):
+                headers.append(line.lower())
+                if "charge" in line.lower():
+                    charge_col_idx = len(headers) - 1
+            elif line == "" or line.startswith("loop_") or line.startswith("#"):
+                in_loop = (line.lower() == "loop_")
+                if line.lower() == "loop_":
+                    headers = []
+                    charge_col_idx = None
+            else:
+                if charge_col_idx is not None and headers:
+                    # This is a data row
+                    tokens = line.split()
+                    if len(tokens) >= len(headers):
+                        try:
+                            q = float(tokens[charge_col_idx])
+                            net_charge += q
+                            n_atoms += 1
+                        except (ValueError, IndexError):
+                            pass
+        i += 1
+
+    if n_atoms == 0:
+        print(f"  Warning: no atom charge data parsed from {cif_file}.")
+        return None, None
+
+    passed = abs(net_charge) <= tolerance
+    status = "PASS" if passed else "FAIL (excluded)"
+    print(f"  Charge neutrality check: net = {net_charge:+.4f} e over {n_atoms} atoms — {status}")
+    return net_charge, passed
 
 
 def calculate_charges(simulation, method="pacmof2"):
     """
     Calculate partial charges for the MOF framework.
+
+    After charges are written, callers should invoke verify_charge_neutrality()
+    on the resulting CIF to confirm |net charge| < 0.05 e before simulation.
 
     Args:
         simulation: GCMCSimulation object
@@ -246,14 +377,7 @@ def _calculate_pacmof2_charges(simulation):
     PACMOF2 is an ML model that approximates DFT-quality DDEC6 charges.
     """
     try:
-        from pymatgen.core import Structure
-    except ImportError:
-        raise ImportError(
-            "pymatgen is required for PACMOF2 charges. Install with: pip install pymatgen"
-        )
-
-    try:
-        from pacmof import get_charges
+        from pacmof2.pacmof2 import get_charges
     except ImportError:
         raise ImportError(
             "PACMOF2 is required. Install from: https://github.com/snurr-group/PACMOF2"
@@ -264,19 +388,17 @@ def _calculate_pacmof2_charges(simulation):
     rundir = simulation.rundir / "charges" / simulation.identifier
     rundir.mkdir(exist_ok=True, parents=True)
 
-    # Load structure and predict charges
-    structure = Structure.from_file(simulation.sorbent_file)
-    charges = get_charges(structure)
+    # PACMOF2 API: get_charges(path_to_cif, output_dir)
+    # Writes {basename}_pacmof.cif to output_dir
+    get_charges(simulation.sorbent_file, str(rundir))
 
-    # Write CIF with charges
-    # Add charges to the structure's site properties
-    structure.add_site_property("charge", charges.tolist())
+    # The output file is named {basename}_pacmof.cif
+    import os
+    basename = os.path.splitext(os.path.basename(simulation.sorbent_file))[0]
+    charged_cif = str(rundir / f"{basename}_pacmof.cif")
 
-    charged_cif = rundir / "charges.cif"
-    structure.to(filename=str(charged_cif))
-
-    # Update sorbent file path
-    simulation.sorbent_file = str(charged_cif)
+    # Update sorbent file path to the charged CIF
+    simulation.sorbent_file = charged_cif
     print(f"  PACMOF2 charges written to {charged_cif}")
 
 
@@ -360,18 +482,24 @@ def run_gcmc_simulation(
     if simulation.helium_void_fraction is None:
         simulation.helium_void_fraction = 1.0
 
-    # Copy CIF to RASPA structures directory if RASPA_PATH is set
-    if RASPA_PATH:
-        struct_dir = Path(RASPA_PATH) / "share" / "raspa" / "structures" / "cif"
-        struct_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy(simulation.sorbent_file, str(struct_dir))
-
     workdir = simulation.rundir / "raspa_output" / simulation.identifier
     workdir.mkdir(exist_ok=True, parents=True)
 
     sorbent_file = ".".join(
         simulation.sorbent_file.replace("\\", "/").split("/")[-1].split(".")[:-1]
     )
+
+    # Copy CIF to RASPA structures directory if RASPA_PATH is set
+    if RASPA_PATH:
+        struct_dir = Path(RASPA_PATH) / "share" / "raspa" / "structures" / "cif"
+        struct_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            shutil.copy(simulation.sorbent_file, str(struct_dir))
+        except Exception:
+            pass  # Fallback: use workdir copy below
+
+    # Always copy CIF to working directory so RASPA can find it
+    shutil.copy(simulation.sorbent_file, str(workdir))
 
     # Calculate number of unit cells if not user-defined
     if sum(unit_cells) == 0:

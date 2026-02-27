@@ -3,14 +3,113 @@ shifted
 # general rule for tail corrections
 no
 # number of defined interactions
-7
-# type     epsilon/kB [K]   sigma [Angstrom]   source
-N_nh3      185.0            3.42               TraPPE-NH3
-H_nh3      0.0              0.0                TraPPE-NH3
-com_nh3    0.0              0.0                TraPPE-NH3
-O_w        93.2             3.1589             TIP4P/2005
-H_w        0.0              0.0                TIP4P/2005
-M_w        0.0              0.0                TIP4P/2005
-N_n2       36.0             3.31               TraPPE-N2
+109
+# type       epsilon/kB [K]   sigma [Angstrom]   source
+# ================= TraPPE Sorbate Atoms =================
+N_nh3        lennard-jones    185.0            3.42
+H_nh3        lennard-jones    0.0              0.0
+com_nh3      lennard-jones    0.0              0.0
+O_w          lennard-jones    93.2             3.1589
+H_w          lennard-jones    0.0              0.0
+M_w          lennard-jones    0.0              0.0
+N_n2         lennard-jones    36.0             3.31
+com_n2       lennard-jones    0.0              0.0
+He           lennard-jones    10.9             2.64
+# ================= UFF Framework Atoms (Rappe et al. 1992) =================
+H            lennard-jones    22.1416          2.5711
+He_fw        lennard-jones    28.1796          2.1043
+Li           lennard-jones    12.5801          2.1836
+Be           lennard-jones    42.7736          2.4455
+B            lennard-jones    47.8058          3.6375
+C            lennard-jones    52.8381          3.4309
+N            lennard-jones    34.7221          3.2607
+O            lennard-jones    30.1932          3.1181
+F            lennard-jones    25.161           2.997
+Ne           lennard-jones    21.1353          3.043
+Na           lennard-jones    15.0966          2.6576
+Mg           lennard-jones    55.8574          2.6914
+Al           lennard-jones    254.1266         4.0082
+Si           lennard-jones    202.2943         3.8264
+P            lennard-jones    153.482          3.6946
+S            lennard-jones    137.8821         3.5948
+Cl           lennard-jones    114.2308         3.5164
+Ar           lennard-jones    93.0957          3.446
+K            lennard-jones    17.6131          3.3961
+Ca           lennard-jones    119.7659         3.0282
+Sc           lennard-jones    9.561            2.9355
+Ti           lennard-jones    8.5546           2.8286
+V            lennard-jones    8.0514           2.801
+Cr           lennard-jones    7.5482           2.6932
+Mn           lennard-jones    6.5418           2.6378
+Fe           lennard-jones    6.5418           2.5943
+Co           lennard-jones    7.045            2.5587
+Ni           lennard-jones    7.5482           2.5248
+Cu           lennard-jones    2.5161           3.1137
+Zn           lennard-jones    62.3993          2.4616
+Ga           lennard-jones    208.8362         3.9048
+Ge           lennard-jones    190.7202         3.8132
+As           lennard-jones    155.4948         3.7685
+Se           lennard-jones    146.4371         3.7462
+Br           lennard-jones    126.3082         3.732
+Kr           lennard-jones    110.7083         3.6892
+Rb           lennard-jones    20.1289          3.6651
+Sr           lennard-jones    118.2563         3.2438
+Y            lennard-jones    36.2318          2.9801
+Zr           lennard-jones    34.7221          2.7832
+Nb           lennard-jones    29.6899          2.8197
+Mo           lennard-jones    28.1796          2.719
+Tc           lennard-jones    24.1546          2.6709
+Ru           lennard-jones    28.1796          2.6397
+Rh           lennard-jones    26.6693          2.6094
+Pd           lennard-jones    24.1546          2.5827
+Ag           lennard-jones    18.1163          2.8045
+Cd           lennard-jones    114.734          2.5373
+In           lennard-jones    301.428          3.976
+Sn           lennard-jones    285.3281         3.9128
+Sb           lennard-jones    225.949          3.9378
+Te           lennard-jones    200.788          3.9823
+I            lennard-jones    170.585          4.009
+Xe           lennard-jones    167.069          3.9235
+Cs           lennard-jones    22.6448          4.0242
+Ba           lennard-jones    183.172          3.299
+La           lennard-jones    8.5546           3.1377
+Ce           lennard-jones    6.5418           3.168
+Pr           lennard-jones    5.0321           3.2126
+Nd           lennard-jones    5.0321           3.185
+Pm           lennard-jones    4.5289           3.16
+Sm           lennard-jones    4.0257           3.136
+Eu           lennard-jones    4.0257           3.1119
+Gd           lennard-jones    4.5289           3.0005
+Tb           lennard-jones    3.5225           3.0745
+Dy           lennard-jones    3.5225           3.054
+Ho           lennard-jones    3.5225           3.0371
+Er           lennard-jones    3.5225           3.021
+Tm           lennard-jones    3.0193           3.0059
+Yb           lennard-jones    114.734          2.989
+Lu           lennard-jones    20.6321          3.2428
+Hf           lennard-jones    36.2318          2.7983
+Ta           lennard-jones    40.7607          2.8241
+W            lennard-jones    33.7157          2.7342
+Re           lennard-jones    33.2125          2.6316
+Os           lennard-jones    18.6195          2.7796
+Ir           lennard-jones    36.735           2.5302
+Pt           lennard-jones    40.2575          2.4535
+Au           lennard-jones    19.626           2.9337
+Hg           lennard-jones    193.7395         2.4099
+Tl           lennard-jones    342.1858         3.8727
+Pb           lennard-jones    333.6377         3.8282
+Bi           lennard-jones    260.6685         3.8932
+Po           lennard-jones    163.5552         3.8278
+At           lennard-jones    142.9198         4.0202
+Rn           lennard-jones    124.8038         4.1453
+Fr           lennard-jones    25.161           4.3654
+Ra           lennard-jones    203.3008         3.2759
+Ac           lennard-jones    16.6063          3.0985
+Th           lennard-jones    13.0834          3.0254
+Pa           lennard-jones    11.0706          3.0505
+U            lennard-jones    11.0706          3.0246
+Np           lennard-jones    9.561            3.0504
+Pu           lennard-jones    8.0514           3.0504
+Am           lennard-jones    7.045            3.0121
 # general mixing rule for Lennard-Jones
 Lorentz-Berthelot
